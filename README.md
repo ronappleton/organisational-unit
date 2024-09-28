@@ -28,17 +28,17 @@ To use the `OrganisationalUnit` model, simply create a new instance and set the 
 ```php
 use Appleton\OrganisationalUnit\Models\OrganisationalUnit;
 
- = new OrganisationalUnit();
- = 'entity-1';
- = 'EntityType';
-();
+ $unit = new OrganisationalUnit();
+ $unit->entity_id = 1;
+ $unit->entity_type = SomeType::class;
+ $unit->save();
 ```
 
 You can also create parent-child relationships:
 
 ```php
- = OrganisationalUnit::create(['entity_id' => 'parent-entity', 'entity_type' => 'ParentType']);
- = OrganisationalUnit::create(['entity_id' => 'child-entity', 'entity_type' => 'ChildType', 'parent_id' => ]);
+ $unit = OrganisationalUnit::create(['entity_id' => 'parent-entity', 'entity_type' => 'ParentType']);
+ $unit = OrganisationalUnit::create(['entity_id' => 'child-entity', 'entity_type' => 'ChildType', 'parent_id' => ]);
 ```
 
 ## Model Properties
