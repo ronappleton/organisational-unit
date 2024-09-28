@@ -10,6 +10,9 @@ use InvalidArgumentException;
 use Tests\Models\SomeType;
 use Tests\TestCase;
 
+/**
+ * @covers \Appleton\OrganisationalUnit\Models\OrganisationalUnit
+ */
 class OrganisationalUnitTest extends TestCase
 {
     use RefreshDatabase;

@@ -3,12 +3,23 @@
         bootstrap="vendor/autoload.php"
         colors="true"
 >
+    <coverage includeUncoveredFiles="true">
+        <report>
+            <clover outputFile="coverage/coverage-clover.xml"/>
+            <html outputDirectory="coverage/" lowUpperBound="35" highLowerBound="70"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true"/>
+        </report>
+    </coverage>
     <testsuites>
         <testsuite name="Unit Test Suite">
             <directory>./tests/Unit</directory>
         </testsuite>
     </testsuites>
-
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
     <php>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
