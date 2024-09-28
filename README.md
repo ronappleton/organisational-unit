@@ -1,5 +1,7 @@
 # Organisational Unit
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6e09ac1648ef4a05afbabb6d798373dc)](https://app.codacy.com/gh/ronappleton/organisational-unit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 The `OrganisationalUnit` package provides a way to manage hierarchical structures within an organisation. This Eloquent model allows for the creation, retrieval, and manipulation of organisational units and their relationships, including parent-child relationships.
 
 ## Table of Contents
