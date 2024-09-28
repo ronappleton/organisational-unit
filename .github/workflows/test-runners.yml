@@ -48,12 +48,7 @@ jobs:
       - name: Run Static Analysis
         run: composer run-script stan
 
-  codacy-coverage-reporter:
-    runs-on: ubuntu-latest
-    name: codacy-coverage-reporter
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run codacy-coverage-reporter
+      - name: Upload coverage to Codacy
         uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
