@@ -37,14 +37,7 @@ jobs:
 
     - name: Run Static Analysis
       run: composer run-script stan
-      
-  codacy-coverage-reporter:
-    runs-on: ubuntu-latest
-    name: codacy-coverage-reporter
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1.3.0
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: coverage
+
+    - name: Upload coverage to Codacy
+      run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --language php --force-coverage-parser phpunit-xml --project-token ${{ secrets.CODACY_PROJECT_TOKEN }} --api-token ${{ secrets.CODACY_API_TOKEN }} --commit-uuid ${{ github.sha }} --commit-branch ${{ github.ref }} --commit-repo-name ${{ github.repository }} --commit-author-name ${{ github.actor }} --commit-author-email ${{ github.actor }} --commit-message ${{ github.event.head_commit.message }} --commit-date ${{ github.event.head_commit.timestamp }} --coverage-file build/logs/clover.xml
+
