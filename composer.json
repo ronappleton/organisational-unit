@@ -1,0 +1,42 @@
+{
+    "name": "ronappleton/organisational-unit",
+    "description": "Pattern for managing organisational structures, from management structures, to company structures to any kind or organisational structure.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Appleton\\OrganisationalUnit\\": "src/",
+            "Database\\Factories\\": "database/factories/",
+            "Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ron Appleton",
+            "email": "ron.appleton@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "laravel/framework": "^11.25",
+        "phpunit/phpunit": "^11.3",
+        "phpstan/phpstan": "^1.12",
+        "orchestra/testbench": "^9.5",
+        "larastan/larastan": "^2.9",
+        "laravel/pint": "^1.18"
+    },
+    "require": {
+        "php": "^8.3"
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse",
+        "pint": "pint"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Appleton\\OrganisationalUnit\\OrganisationalUnitServiceProvider"
+            ]
+        }
+    }
+}
