@@ -19,7 +19,7 @@ jobs:
       - name: Set up PHP with Xdebug
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3' 
+          php-version: '8.3'
           extensions: xdebug
           coverage: xdebug
 
@@ -48,5 +48,13 @@ jobs:
       - name: Run Static Analysis
         run: composer run-script stan
 
-      - name: Upload coverage to Codacy
-        run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --language php --coverage-reporter phpunit --project-token ${{ secrets.CODACY_PROJECT_TOKEN }} --api-token ${{ secrets.CODACY_API_TOKEN }} --commit-uuid ${{ github.sha }} --coverage-file build/logs/clover.xml
+  codacy-coverage-reporter:
+    runs-on: ubuntu-latest
+    name: codacy-coverage-reporter
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage/coverage-clover.xml
