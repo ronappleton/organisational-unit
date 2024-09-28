@@ -1,5 +1,6 @@
 # Organisational Unit
 
+![Laravel](https://img.shields.io/badge/laravel-%23FF2D20.svg?style=for-the-badge&logo=laravel&logoColor=white)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/6e09ac1648ef4a05afbabb6d798373dc)](https://app.codacy.com/gh/ronappleton/organisational-unit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/6e09ac1648ef4a05afbabb6d798373dc)](https://app.codacy.com/gh/ronappleton/organisational-unit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 
