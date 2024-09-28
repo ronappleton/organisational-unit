@@ -19,7 +19,7 @@ jobs:
       - name: Set up PHP with Xdebug
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1' # Adjust PHP version as necessary
+          php-version: '8.3' 
           extensions: xdebug
           coverage: xdebug
 
