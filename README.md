@@ -54,79 +54,115 @@ You can also create parent-child relationships:
 
 ## Relationships
 
-### `entity()`
+```php
+public function entity(): MorphTo
+```
 
 Returns the associated entity for the organisational unit.
 
-### `parent()`
+```php
+public function parent(): BelongsTo
+```
 
 Returns the parent organisational unit.
 
-### `children()`
+```php
+public function children(): HasMany
+```
 
 Returns the children organisational units.
 
 ## Scopes
 
-### `scopeEntityType(, )`
+```php
+ public function scopeEntityType(Builder $query, string $type): Builder
+```
 
 Filter units by entity type.
 
-### `scopeRoot()`
+```php
+ public function scopeRoot(Builder $query): Builder
+```
 
 Filter root units (no parent).
 
 ## Utility Functions
 
-### `getTree( = true)`
+```php
+public function getTree(bool $withEntities = true): Collection
+```
 
 Get the tree of organisational units, optionally with associated entities.
 
-### `buildTree( = null)`
+```php
+public function buildTree(int|string|null $parentId = null): Collection
+```
 
 Recursively build the organisational unit tree.
 
-### `moveToParent()`
+```php
+public function moveToParent(int|string|null $newParentId): void
+```
 
 Move the organisational unit to a new parent.
 
-### `detachFromParent()`
+```php
+public function detachFromParent(): void
+```
 
 Detach the organisational unit from its current parent.
 
-### `rebuildTreeFromFlatList()`
+```php
+public function rebuildTreeFromFlatList(Collection $flatUnits): void
+```
 
 Rebuild the tree structure from a flat list of units.
 
-### `descendants()`
+```php
+public function descendants(): Collection
+```
 
 Get the descendants of the organisational unit.
 
-### `getParentChain()`
+```php
+public function getParentChain(): Collection
+```
 
 Get the chain of parent organisational units (ancestors) up to the root.
 
-### `getSiblings()`
+```php
+public function getSiblings(): Collection
+```
 
 Get the direct siblings of the organisational unit.
 
-### `getAllRoots()`
+```php
+public function getAllRoots(): Collection
+```
 
 Get all root organisational units (nodes with no parent).
 
-### `getDescendantsCount()`
+```php
+public function getDescendantsCount(): int
+```
 
 Get the total number of descendants for the current organisational unit.
 
-### `getFieldsByConditions(array , array )`
+```php
+public function getFieldsByConditions(array $fields, array $conditions): Collection
+```
 
 Get specified fields of organisational units that match the given conditions along the tree path.
 
-### `isRoot()`
+```php
+public function isRoot(): bool
+```
 
 Check if the organisational unit is a root node.
 
-### `isLeaf()`
+```php
+public function isLeaf(): bool
+```
 
 Check if the organisational unit is a leaf node (no children).
 
