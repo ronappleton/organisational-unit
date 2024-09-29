@@ -11,9 +11,6 @@ use Tests\Models\SomeOtherType;
 use Tests\Models\SomeType;
 use Tests\TestCase;
 
-/**
- * @covers \Appleton\OrganisationalUnit\Models\OrganisationalUnit
- */
 class OrganisationalUnitTest extends TestCase
 {
     use RefreshDatabase;
@@ -206,6 +203,24 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($results->contains('entity_id', $parent->entity_id));
         $this->assertTrue($results->contains('entity_id', $child1->entity_id));
         $this->assertTrue($results->contains('entity_id', $child2->entity_id));
+    }
+
+    public function testGetFieldsByConditionsWithNoMatch(): void
+    {
+        $someType = SomeType::factory()->create();
+
+        $unit = OrganisationalUnit::factory()->create([
+            'entity_type' => SomeType::class,
+            'entity_id' => $someType->id,
+        ]);
+
+        $fields = ['name', 'entity_type', 'entity_id'];
+
+        $conditions = ['name' => 'Non-Matching Name'];
+
+        $results = $unit->getFieldsByConditions($fields, $conditions);
+
+        $this->assertTrue($results->isEmpty());
     }
 
     public function testEntityTypeAndIdMustBeUniqueWithinSameParent(): void
@@ -406,5 +421,14 @@ class OrganisationalUnitTest extends TestCase
         $descendantsCount = $parentUnit->getDescendantsCount();
 
         $this->assertEquals(3, $descendantsCount);
+    }
+
+    public function testUpdatingOrganisationalUnitWithInvalidType(): void
+    {
+        $someType = SomeType::factory()->create();
+        $unit = OrganisationalUnit::factory()->create(['entity_id' => $someType->id, 'entity_type' => SomeType::class]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $unit->update(['entity_type' => 'InvalidType']);
     }
 }
