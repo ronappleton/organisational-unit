@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use Appleton\OrganisationalUnit\Models\OrganisationalUnit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
+use Tests\Models\SomeOtherType;
 use Tests\Models\SomeType;
 use Tests\TestCase;
 
@@ -343,5 +344,67 @@ class OrganisationalUnitTest extends TestCase
 
         $this->assertDatabaseMissing('organisational_units', ['id' => $child1->id]);
         $this->assertDatabaseMissing('organisational_units', ['id' => $child2->id]);
+    }
+
+    public function testScopeEntityType(): void
+    {
+        $someType = SomeType::factory()->create();
+        $someOtherType = SomeOtherType::factory()->create();
+
+        $unitTypeA = OrganisationalUnit::factory()->create(['entity_type' => SomeType::class, 'entity_id' => $someType->id]);
+        $unitTypeB = OrganisationalUnit::factory()->create(['entity_type' => SomeOtherType::class, 'entity_id' => $someOtherType->id]);
+
+        $filteredUnits = OrganisationalUnit::entityType(SomeType::class)->get();
+
+        $this->assertTrue($filteredUnits->contains($unitTypeA));
+        $this->assertFalse($filteredUnits->contains($unitTypeB));
+    }
+
+    public function testBuildTree(): void
+    {
+        $someType = SomeType::factory()->create();
+        $someOtherType = SomeOtherType::factory()->create();
+
+        $parentUnit = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
+        $childUnit = OrganisationalUnit::factory()->create(['parent_id' => $parentUnit->id, 'entity_id' => $someOtherType->id, 'entity_type' => SomeOtherType::class]);
+
+        $tree = OrganisationalUnit::buildTree();
+
+        $this->assertNotNull($tree);
+        $this->assertTrue($tree->contains($parentUnit));
+        $this->assertTrue($tree->first()->children->contains($childUnit));
+    }
+
+    public function testGetAllRoots()
+    {
+        $someType = SomeType::factory()->create();
+        $someOtherType = SomeOtherType::factory()->create();
+
+        $rootUnit = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
+        $childUnit = OrganisationalUnit::factory()->create(['parent_id' => $rootUnit->id, 'entity_id' => $someOtherType->id, 'entity_type' => SomeOtherType::class]);
+
+        $roots = OrganisationalUnit::getAllRoots();
+
+        $this->assertCount(1, $roots);
+        $this->assertTrue($roots->contains($rootUnit));
+        $this->assertFalse($roots->contains($childUnit));
+    }
+
+    public function testGetDescendantsCount()
+    {
+        // Arrange: Create a parent unit with multiple descendants.
+        $someType = SomeType::factory()->create();
+        $someType2 = SomeType::factory()->create();
+        $someType3 = SomeType::factory()->create();
+        $someType4 = SomeType::factory()->create();
+
+        $parentUnit = OrganisationalUnit::factory()->create(['entity_id' => $someType->id, 'entity_type' => SomeType::class]);
+        $childUnit1 = OrganisationalUnit::factory()->create(['parent_id' => $parentUnit->id, 'entity_id' => $someType2->id, 'entity_type' => SomeType::class]);
+        OrganisationalUnit::factory()->create(['parent_id' => $parentUnit->id, 'entity_id' => $someType3->id, 'entity_type' => SomeType::class]);
+        OrganisationalUnit::factory()->create(['parent_id' => $childUnit1->id, 'entity_id' => $someType4->id, 'entity_type' => SomeType::class]);
+
+        $descendantsCount = $parentUnit->getDescendantsCount();
+
+        $this->assertEquals(3, $descendantsCount);
     }
 }

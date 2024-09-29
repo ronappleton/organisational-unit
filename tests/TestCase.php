@@ -38,5 +38,24 @@ class TestCase extends \Orchestra\Testbench\TestCase
         };
 
         $migration->up();
+
+        $migration = new class extends Migration
+        {
+            public function up(): void
+            {
+                Schema::create('some_other_types', function (Blueprint $table) {
+                    $table->id();
+                    $table->string('name');
+                    $table->timestamps();
+                });
+            }
+
+            public function down(): void
+            {
+                Schema::dropIfExists('some_other_types');
+            }
+        };
+
+        $migration->up();
     }
 }
