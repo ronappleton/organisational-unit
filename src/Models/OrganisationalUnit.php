@@ -176,13 +176,14 @@ class OrganisationalUnit extends Model
      */
     public function moveToParent(int|string|null $newParentId): void
     {
-        if ($this->id === $newParentId) {
-            throw new \InvalidArgumentException('An organisational unit cannot be its own parent.');
+        if ($this->id === $newParentId || $this->descendants()->contains('id', $newParentId)) {
+            throw new \InvalidArgumentException('Invalid parent assignment.');
         }
 
         $this->parent_id = $newParentId;
         $this->save();
     }
+
 
     /**
      * Detach the organisational unit from its current parent (make it a root node).
