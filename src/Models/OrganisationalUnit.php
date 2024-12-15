@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Appleton\OrganisationalUnit\Models;
 
+use Appleton\OrganisationalUnit\QueryBuilders\OrganisationalUnitQueryBuilder;
 use Database\Factories\OrganisationalUnitFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -11,9 +12,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Appleton\OrganisationalUnit\Models\Metadata;
 
 /**
  * OrganisationalUnit
@@ -44,6 +47,11 @@ class OrganisationalUnit extends Model
     protected static function newFactory(): OrganisationalUnitFactory
     {
         return OrganisationalUnitFactory::new();
+    }
+
+    public function newEloquentBuilder($query): OrganisationalUnitQueryBuilder
+    {
+        return new OrganisationalUnitQueryBuilder($query);
     }
 
     // Relationships
@@ -377,6 +385,14 @@ class OrganisationalUnit extends Model
     public function isLeaf(): bool
     {
         return $this->children()->count() === 0;
+    }
+
+    /**
+     * Get all metadata for the organisational unit.
+     */
+    public function metadata(): MorphMany
+    {
+        return $this->morphMany(Metadata::class, 'metadatable');
     }
 
     protected static function boot(): void
