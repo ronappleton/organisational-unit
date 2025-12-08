@@ -26,11 +26,3 @@ This package includes several example guides demonstrating how to use the Organi
 
 ---
 
-## 🔗 How to Use This File
-
-Place this `docs.md` in your project root, then add a link in the main README:
-
-```
-For full documentation, see [Documentation Index](docs.md).
-```
-
