@@ -6,21 +6,25 @@ namespace Appleton\OrganisationalUnit\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Metadata extends Model
+class ModelMetadata extends Model
 {
-    use SoftDeletes;
+    protected $table = 'model_metadata';
 
     protected $fillable = [
         'key',
-        'value',
-        'metadatable',
+        'string_value',
+        'int_value',
+        'decimal_value',
+        'bool_value',
+        'json_value',
     ];
 
-    /**
-     * Get the owning metadatable model.
-     */
+    protected $casts = [
+        'bool_value' => 'bool',
+        'json_value' => 'array',
+    ];
+
     public function metadatable(): MorphTo
     {
         return $this->morphTo();

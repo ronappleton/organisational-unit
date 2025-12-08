@@ -16,8 +16,8 @@ class OrganisationalUnitQueryBuilder extends Builder
     use HasAggregationQueries;
     use HasUtilityQueries;
 
-        public function __construct(QueryBuilder $query)
-        {
-            parent::__construct($query);
-        }
+    public function __construct(QueryBuilder $query)
+    {
+        parent::__construct($query);
+    }
 }

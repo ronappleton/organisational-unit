@@ -7,7 +7,6 @@ namespace Appleton\OrganisationalUnit\Models;
 use Appleton\OrganisationalUnit\QueryBuilders\OrganisationalUnitQueryBuilder;
 use Database\Factories\OrganisationalUnitFactory;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,32 +15,42 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
-use Appleton\OrganisationalUnit\Models\Metadata;
 
 /**
- * OrganisationalUnit
- *
- *
- * @property-read int|string $id
- * @property int|string|null $parent_id
- * @property string $entity_id
- * @property string $entity_type
- * @property OrganisationalUnit|null $parent
- * @property Collection<int, OrganisationalUnit> $children
+ * @property int $id
+ * @property int|null $parent_id
+ * @property string|null $entity_type
+ * @property int|null $entity_id
+ * @property string $name
+ * @property string|null $code
+ * @property string|null $type
+ * @property int|null $tenant_id
+ * @property-read OrganisationalUnit|null $parent
+ * @property-read Collection<int, OrganisationalUnit> $children
  */
 class OrganisationalUnit extends Model
 {
     /** @use HasFactory<OrganisationalUnitFactory> */
     use HasFactory;
-    use HasUuids;
-
     use SoftDeletes;
 
     /** @var array<int, string> */
     protected $fillable = [
         'parent_id',
-        'entity_id',
         'entity_type',
+        'entity_id',
+        'name',
+        'code',
+        'type',
+        'tenant_id',
+    ];
+
+    /** @var array<string, string> */
+    protected $casts = [
+        'id' => 'int',
+        'parent_id' => 'int',
+        'entity_id' => 'int',
+        'tenant_id' => 'int',
     ];
 
     protected static function newFactory(): OrganisationalUnitFactory
@@ -49,6 +58,12 @@ class OrganisationalUnit extends Model
         return OrganisationalUnitFactory::new();
     }
 
+    /**
+     * Use the custom query builder.
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @return OrganisationalUnitQueryBuilder
+     */
     public function newEloquentBuilder($query): OrganisationalUnitQueryBuilder
     {
         return new OrganisationalUnitQueryBuilder($query);
@@ -57,7 +72,7 @@ class OrganisationalUnit extends Model
     // Relationships
 
     /**
-     * Get the associated entity.
+     * The associated entity (optional).
      *
      * @return MorphTo<Model, OrganisationalUnit>
      */
@@ -67,35 +82,33 @@ class OrganisationalUnit extends Model
     }
 
     /**
-     * Get the parent organisational unit.
+     * Parent organisational unit.
      *
      * @return BelongsTo<OrganisationalUnit, OrganisationalUnit>
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(OrganisationalUnit::class, 'parent_id');
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
     /**
-     * Get the children organisational units.
+     * Child organisational units.
      *
      * @return HasMany<OrganisationalUnit>
-     *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     *
-     * Warning: Fetching children without eager loading may cause N+1 query issues.
-     *
-     * @example
-     * $units = OrganisationalUnit::with('children')->get();
-     * foreach ($units as $unit) {
-     *     foreach ($unit->children as $child) {
-     *         // Process child
-     *     }
-     * }
      */
     public function children(): HasMany
     {
-        return $this->hasMany(OrganisationalUnit::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Metadata attached to this unit.
+     *
+     * @return MorphMany
+     */
+    public function metadata(): MorphMany
+    {
+        return $this->morphMany(ModelMetadata::class, 'metadatable');
     }
 
     // Scopes
@@ -103,9 +116,7 @@ class OrganisationalUnit extends Model
     /**
      * Scope to filter units by entity type.
      *
-     * @param  Builder<OrganisationalUnit>  $query
-     * @param  class-string  $type
-     * @return Builder<OrganisationalUnit>
+     * @param Builder<OrganisationalUnit> $query
      */
     public function scopeEntityType(Builder $query, string $type): Builder
     {
@@ -115,30 +126,33 @@ class OrganisationalUnit extends Model
     /**
      * Scope to filter root units (no parent).
      *
-     * @param  Builder<OrganisationalUnit>  $query
-     * @return Builder<OrganisationalUnit>
+     * @param Builder<OrganisationalUnit> $query
      */
     public function scopeRoot(Builder $query): Builder
     {
         return $query->whereNull('parent_id');
     }
 
-    // Utility Functions
+    /**
+     * Scope to filter by tenant.
+     *
+     * @param Builder<OrganisationalUnit> $query
+     */
+    public function scopeTenant(Builder $query, int $tenantId): Builder
+    {
+        return $query->where('tenant_id', $tenantId);
+    }
+
+    // Utility functions
 
     /**
      * Get the tree of organisational units, optionally with associated entities.
      *
-     * @param  bool  $withEntities  Whether to load associated entities
      * @return Collection<int, OrganisationalUnit>
-     *
-     * Warning: Fetching units without eager loading their entities may cause N+1 issues.
-     *
-     * @example
-     * $units = (new OrganisationalUnit())->getTree(true); // Eager load entities
      */
     public function getTree(bool $withEntities = true): Collection
     {
-        $query = OrganisationalUnit::query()->with('children');
+        $query = self::query()->with('children');
 
         if ($withEntities) {
             $query->with('children.entity');
@@ -148,24 +162,19 @@ class OrganisationalUnit extends Model
     }
 
     /**
-     * Recursively build the organisational unit tree.
+     * Recursively build the organisational unit tree from a parent.
      *
      * @return Collection<int, OrganisationalUnit>
-     *
-     * Warning: Building the tree without eager loading may cause N+1 issues when accessing children.
-     *
-     * @example
-     * $tree = OrganisationalUnit::buildTree();
-     * foreach ($tree as $unit) {
-     *     // Process unit and its children
-     * }
      */
     public static function buildTree(int|string|null $parentId = null): Collection
     {
-        $units = OrganisationalUnit::where('parent_id', $parentId)->with('entity')->get();
+        $units = self::where('parent_id', $parentId)
+            ->with('entity')
+            ->get();
 
         foreach ($units as $unit) {
-            $unit->children = self::buildTree($unit->id);
+            // Attach a dynamic children property (not persisted)
+            $unit->setRelation('children', self::buildTree($unit->id));
         }
 
         return $units;
@@ -173,32 +182,23 @@ class OrganisationalUnit extends Model
 
     /**
      * Move the organisational unit to a new parent.
-     *
-     * @return void
-     *
-     * Warning: Moving a unit without checking its current children may cause data integrity issues.
-     *
-     * @example
-     * $unit = OrganisationalUnit::find($unitId);
-     * $unit->moveToParent($newParentId);
      */
     public function moveToParent(int|string|null $newParentId): void
     {
-        if ($this->id === $newParentId || $this->descendants()->contains('id', $newParentId)) {
-            throw new \InvalidArgumentException('Invalid parent assignment.');
+        if ($this->id === $newParentId) {
+            throw new \InvalidArgumentException('A unit cannot be its own parent.');
+        }
+
+        if ($newParentId !== null && $this->descendants()->contains('id', $newParentId)) {
+            throw new \InvalidArgumentException('Cannot move a unit under one of its descendants.');
         }
 
         $this->parent_id = $newParentId;
         $this->save();
     }
 
-
     /**
-     * Detach the organisational unit from its current parent (make it a root node).
-     *
-     *
-     * @example
-     * $unit->detachFromParent();
+     * Detach the organisational unit from its parent (make it a root node).
      */
     public function detachFromParent(): void
     {
@@ -209,15 +209,13 @@ class OrganisationalUnit extends Model
     /**
      * Rebuild the tree structure from a flat list of units.
      *
-     * @param  Collection<int, OrganisationalUnit>  $flatUnits
-     *
-     * @example
-     * OrganisationalUnit::rebuildTreeFromFlatList($flatUnits);
+     * @param Collection<int, OrganisationalUnit> $flatUnits
      */
     public static function rebuildTreeFromFlatList(Collection $flatUnits): void
     {
         $flatUnits->each(function (OrganisationalUnit $unit) use ($flatUnits): void {
             $parent = $flatUnits->firstWhere('id', $unit->parent_id);
+
             if ($parent) {
                 $parent->children()->save($unit);
             }
@@ -225,17 +223,9 @@ class OrganisationalUnit extends Model
     }
 
     /**
-     * Get the descendants of the organisational unit.
+     * Get all descendants of this unit (recursive).
      *
      * @return Collection<int, OrganisationalUnit>
-     *
-     * Warning: Fetching descendants without eager loading may cause N+1 issues.
-     *
-     * @example
-     * $descendants = $unit->descendants(); // Eager load if necessary
-     * foreach ($descendants as $descendant) {
-     *     // Process descendant
-     * }
      */
     public function descendants(): Collection
     {
@@ -251,25 +241,17 @@ class OrganisationalUnit extends Model
     }
 
     /**
-     * Get the chain of parent organisational units (ancestors) up to the root.
+     * Get the chain of parent units (ancestors) up to the root.
      *
      * @return Collection<int, OrganisationalUnit>
-     *
-     * Warning: Fetching ancestors without eager loading may cause N+1 issues.
-     *
-     * @example
-     * $ancestors = $unit->getParentChain();
-     * foreach ($ancestors as $ancestor) {
-     *     // Process ancestor
-     * }
      */
     public function getParentChain(): Collection
     {
         $ancestors = collect();
-        $current = $this;
+        $current = $this->parent;
 
-        while ($current->parent) {
-            $ancestors->push($current->parent);
+        while ($current) {
+            $ancestors->push($current);
             $current = $current->parent;
         }
 
@@ -277,45 +259,29 @@ class OrganisationalUnit extends Model
     }
 
     /**
-     * Get the direct siblings of the organisational unit.
+     * Get siblings of this unit (same parent, excluding self).
      *
      * @return Collection<int, OrganisationalUnit>
-     *
-     * @example
-     * $siblings = $unit->getSiblings();
-     * foreach ($siblings as $sibling) {
-     *     // Process sibling
-     * }
      */
     public function getSiblings(): Collection
     {
-        return OrganisationalUnit::where('parent_id', $this->parent_id)
+        return self::where('parent_id', $this->parent_id)
             ->where('id', '!=', $this->id)
             ->get();
     }
 
     /**
-     * Get all root organisational units (nodes with no parent).
+     * Get all root units.
      *
      * @return Collection<int, OrganisationalUnit>
-     *
-     * @example
-     * $roots = OrganisationalUnit::getAllRoots();
-     * foreach ($roots as $root) {
-     *     // Process root unit
-     * }
      */
     public static function getAllRoots(): Collection
     {
-        return OrganisationalUnit::whereNull('parent_id')->get();
+        return self::whereNull('parent_id')->get();
     }
 
     /**
-     * Get the total number of descendants for the current organisational unit.
-     *
-     *
-     * @example
-     * $totalDescendants = $unit->getDescendantsCount();
+     * Count all descendants of this unit.
      */
     public function getDescendantsCount(): int
     {
@@ -323,26 +289,19 @@ class OrganisationalUnit extends Model
     }
 
     /**
-     * Get specified fields of organisational units that match the given conditions along the tree path.
+     * Recursively get selected fields for units matching conditions.
      *
-     * @param  array<int, string>  $fields
-     * @param  array<string, string>  $conditions
+     * @param array<int, string> $fields
+     * @param array<string, mixed> $conditions
      * @return Collection<int, array<string, mixed>>
-     *
-     * @example
-     * $results = $unit->getFieldsByConditions(['entity_id'], ['entity_type' => 'SomeType']);
      */
     public function getFieldsByConditions(array $fields, array $conditions): Collection
     {
         $results = collect();
 
-        $matches = true;
-        foreach ($conditions as $field => $value) {
-            if ($this->{$field} !== $value) {
-                $matches = false;
-                break;
-            }
-        }
+        $matches = collect($conditions)->every(
+            fn($value, string $field) => $this->{$field} === $value
+        );
 
         if ($matches) {
             $result = [];
@@ -352,75 +311,49 @@ class OrganisationalUnit extends Model
             $results->push($result);
         }
 
+        // NOTE: may cause N+1 if children relation not eager-loaded
         foreach ($this->children as $child) {
-            $results = $results->merge($child->getFieldsByConditions($fields, $conditions));
+            $results = $results->merge(
+                $child->getFieldsByConditions($fields, $conditions)
+            );
         }
 
         return $results;
     }
 
     /**
-     * Check if the organisational unit is a root node.
-     *
-     *
-     * @example
-     * if ($unit->isRoot()) {
-     *     // Handle root unit
-     * }
+     * Is this unit a root (no parent)?
      */
     public function isRoot(): bool
     {
-        return is_null($this->parent_id);
+        return $this->parent_id === null;
     }
 
     /**
-     * Check if the organisational unit is a leaf node (no children).
-     *
-     *
-     * @example
-     * if ($unit->isLeaf()) {
-     *     // Handle leaf unit
-     * }
+     * Is this unit a leaf (no children)?
      */
     public function isLeaf(): bool
     {
-        return $this->children()->count() === 0;
-    }
-
-    /**
-     * Get all metadata for the organisational unit.
-     */
-    public function metadata(): MorphMany
-    {
-        return $this->morphMany(Metadata::class, 'metadatable');
+        return !$this->children()->exists();
     }
 
     protected static function boot(): void
     {
         parent::boot();
 
+        // Cascade soft deletes / restores / force deletes to children
         static::deleting(function (OrganisationalUnit $unit): void {
-            $unit->children()->delete();
+            if (!$unit->isForceDeleting()) {
+                $unit->children()->delete();
+            }
         });
 
         static::restoring(function (OrganisationalUnit $unit): void {
             $unit->children()->withTrashed()->restore();
         });
 
-        static::forceDeleting(function (OrganisationalUnit $unit): void {
+        static::forceDeleted(function (OrganisationalUnit $unit): void {
             $unit->children()->forceDelete();
-        });
-
-        static::creating(function (OrganisationalUnit $unit): void {
-            if (! class_exists($unit->entity_type)) {
-                throw new \InvalidArgumentException('Invalid entity type.');
-            }
-        });
-
-        static::updating(function (OrganisationalUnit $unit): void {
-            if (! class_exists($unit->entity_type)) {
-                throw new \InvalidArgumentException('Invalid entity type.');
-            }
         });
     }
 }
