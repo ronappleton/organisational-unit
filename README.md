@@ -1,175 +1,211 @@
-# Organisational Unit
-
 ![Laravel](https://img.shields.io/badge/laravel-%23FF2D20.svg?style=for-the-badge&logo=laravel&logoColor=white)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/6e09ac1648ef4a05afbabb6d798373dc)](https://app.codacy.com/gh/ronappleton/organisational-unit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/6e09ac1648ef4a05afbabb6d798373dc)](https://app.codacy.com/gh/ronappleton/organisational-unit/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 
-The `OrganisationalUnit` package provides a way to manage hierarchical structures within an organisation. This Eloquent model allows for the creation, retrieval, and manipulation of organisational units and their relationships, including parent-child relationships.
+# 📦 Organisational Unit Backbone
+A lightweight, high-performance hierarchical structure & metadata system for Laravel applications.
 
-## Table of Contents
+This package provides a **generic organisational unit backbone**, designed as a universal building block for representing **anything hierarchical**:
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Model Properties](#model-properties)
-- [Relationships](#relationships)
-- [Scopes](#scopes)
-- [Utility Functions](#utility-functions)
-- [Contributing](#contributing)
-- [License](#license)
+- Schools → Year Groups → Classes
+- Warehouses → Zones → Aisles → Racks → Bins
+- Corporate Org Charts
+- Facilities → Buildings → Floors → Rooms
+- Taxonomies
+- Asset Locations
+- Multi-tenant logical structures
 
-## Installation
+It provides:
 
-You can install the package via Composer:
+- A **lean organisational_units table** (bigint, indexed, fast)
+- Optional **morph link to any model**
+- Fully managed **parent/child tree structure**
+- Typed, polymorphic **metadata**
+- Clean, extensible **query builder helpers**
+- PHP-side tree utilities (descendants, ancestors, etc.)
+- Automatic cascading of soft deletes / restores
+
+## 🚀 Why start your project with this backbone?
+
+Most systems *accidentally* recreate these same problems:
+
+- “We need a structure of buildings → rooms → sensors.”
+- “We need departments → teams → roles.”
+- “We need product categories.”
+- “We need a place hierarchy.”
+- “We need dynamic classifications.”
+- “We need custom per-node metadata.”
+
+Every time, developers start from scratch.
+
+By beginning with this backbone you get:
+
+- **Universal applicability**
+- **Strong consistency**
+- **Flexibility without performance loss**
+- **Extensibility without schema rewrites**
+- **Scalable metadata system**
+- **Tree tools baked in**
+
+This becomes a foundation your entire ecosystem can depend on.
+
+## 📥 Installation
 
 ```bash
 composer require appleton/organisational-unit
+php artisan migrate
 ```
 
-## Usage
+## 🗂️ Database Structure
 
-To use the `OrganisationalUnit` model, simply create a new instance and set the properties as needed:
+The `organisational_units` table contains:
+
+- id (bigint PK)
+- parent_id (nullable FK)
+- entity_type / entity_id (nullable morph)
+- name
+- code
+- type
+- tenant_id
+- soft deletes + timestamps
+
+Indexes exist on:
+
+- parent_id
+- entity_type, entity_id
+- type
+- code
+- tenant_id
+- tenant_id, type
+
+## 🌳 Model Usage
 
 ```php
-use Appleton\OrganisationalUnit\Models\OrganisationalUnit;
-
- $unit = new OrganisationalUnit();
- $unit->entity_id = 1;
- $unit->entity_type = SomeType::class;
- $unit->save();
+$unit = OrganisationalUnit::create([
+    'name' => 'Warehouse A',
+    'type' => 'warehouse',
+]);
 ```
 
-You can also create parent-child relationships:
+## Parent / Children
 
 ```php
- $unit = OrganisationalUnit::create(['entity_id' => 'parent-entity', 'entity_type' => 'ParentType']);
- $unit = OrganisationalUnit::create(['entity_id' => 'child-entity', 'entity_type' => 'ChildType', 'parent_id' => ]);
+$unit->parent;
+$unit->children;
 ```
 
-## Model Properties
-
-- `id`: Unique identifier for the organisational unit (can be either an integer or a UUID).
-- `parent_id`: The ID of the parent organisational unit.
-- `entity_id`: Identifier of the associated entity.
-- `entity_type`: Type of the associated entity.
-
-## Relationships
+## Linking Entities
 
 ```php
-public function entity(): MorphTo
+$unit->entity()->associate($model)->save();
 ```
 
-Returns the associated entity for the organisational unit.
+## Moving Units
 
 ```php
-public function parent(): BelongsTo
+$unit->moveToParent($newParentId);
 ```
 
-Returns the parent organisational unit.
+## Building Trees
 
 ```php
-public function children(): HasMany
+$tree = OrganisationalUnit::buildTree();
 ```
 
-Returns the children organisational units.
-
-## Scopes
+## Descendants / Ancestors
 
 ```php
- public function scopeEntityType(Builder $query, string $type): Builder
+$unit->descendants();
+$unit->getParentChain();
 ```
 
-Filter units by entity type.
+## 🧠 Query Builder
 
 ```php
- public function scopeRoot(Builder $query): Builder
+OrganisationalUnit::query()
+    ->root()
+    ->tenant(5)
+    ->ofType('bin')
+    ->entityType(User::class)
+    ->get();
 ```
 
-Filter root units (no parent).
+## 🏷️ Metadata
 
-## Utility Functions
+Set metadata:
 
 ```php
-public function getTree(bool $withEntities = true): Collection
+$unit->setMeta('capacity', 300);
+$unit->setMeta('is_active', true);
+$unit->setMeta('config', ['threshold' => 10]);
 ```
 
-Get the tree of organisational units, optionally with associated entities.
+Get metadata:
 
 ```php
-public function buildTree(int|string|null $parentId = null): Collection
+$unit->getMeta('capacity');
 ```
 
-Recursively build the organisational unit tree.
+Remove:
 
 ```php
-public function moveToParent(int|string|null $newParentId): void
+$unit->forgetMeta('capacity');
 ```
 
-Move the organisational unit to a new parent.
+## 🏫 Example: School
 
 ```php
-public function detachFromParent(): void
+$school = OU::create(['name' => 'Greenfields Primary', 'type' => 'school']);
+$ks1 = OU::create(['name' => 'Key Stage 1', 'parent_id' => $school->id]);
+$y1 = OU::create(['name' => 'Year 1', 'parent_id' => $ks1->id]);
+
+$classA = OU::create([
+    'name' => '1A',
+    'parent_id' => $y1->id,
+]);
+$classA->setMeta('max_size', 30);
 ```
 
-Detach the organisational unit from its current parent.
+## 📦 Example: WMS
 
 ```php
-public function rebuildTreeFromFlatList(Collection $flatUnits): void
+$wh = OU::create(['name' => 'Warehouse 1', 'type' => 'warehouse']);
+$zone = OU::create(['name' => 'Zone A', 'parent_id' => $wh->id]);
+$aisle = OU::create(['name' => 'Aisle 12', 'parent_id' => $zone->id]);
+$bin = OU::create(['name' => 'Bin 7', 'parent_id' => $aisle->id]);
+
+$bin->setMeta('max_weight', 250);
 ```
 
-Rebuild the tree structure from a flat list of units.
+## 🏛️ Example: Facilities
 
 ```php
-public function descendants(): Collection
+$campus = OU::create(['name' => 'North Campus']);
+$building = OU::create(['name' => 'Block A', 'parent_id' => $campus->id]);
+$room101 = OU::create(['name' => 'Room 101', 'parent_id' => $building->id']);
+$room101->setMeta('capacity', 40);
 ```
 
-Get the descendants of the organisational unit.
+## ⚙️ Extensibility
 
-```php
-public function getParentChain(): Collection
-```
+- Attach any model via `entity_type/entity_id`
+- Add metadata dynamically
+- Use `type` to build domain-specific trees
+- Use `tenant_id` for SaaS isolation
 
-Get the chain of parent organisational units (ancestors) up to the root.
+## 🔧 Performance Notes
 
-```php
-public function getSiblings(): Collection
-```
+- Bigint PKs allow fast joins and small indexes
+- Narrow row design supports millions of units
+- Typed metadata avoids unbounded JSON blobs
+- Recursion is PHP-based for reliability
 
-Get the direct siblings of the organisational unit.
+## 🧱 Philosophy Summary
 
-```php
-public function getAllRoots(): Collection
-```
+- A **universal tree system**
+- A **universal metadata system**
+- A **universal linking system**
+- Extendable into any domain
+- Highly scalable and predictable
 
-Get all root organisational units (nodes with no parent).
-
-```php
-public function getDescendantsCount(): int
-```
-
-Get the total number of descendants for the current organisational unit.
-
-```php
-public function getFieldsByConditions(array $fields, array $conditions): Collection
-```
-
-Get specified fields of organisational units that match the given conditions along the tree path.
-
-```php
-public function isRoot(): bool
-```
-
-Check if the organisational unit is a root node.
-
-```php
-public function isLeaf(): bool
-```
-
-Check if the organisational unit is a leaf node (no children).
-
-## Contributing
-
-If you want to contribute to this package, please fork the repository and make a pull request.
-
-## License
-
-This package is open-sourced software licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This solves a problem once so your whole ecosystem doesn't need to reinvent structure management repeatedly.

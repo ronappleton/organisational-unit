@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Appleton\OrganisationalUnit\Models;
 
 use Appleton\OrganisationalUnit\QueryBuilders\OrganisationalUnitQueryBuilder;
+use Appleton\OrganisationalUnit\Traits\HasMetadata;
 use Database\Factories\OrganisationalUnitFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +34,7 @@ class OrganisationalUnit extends Model
     /** @use HasFactory<OrganisationalUnitFactory> */
     use HasFactory;
     use SoftDeletes;
+    use HasMetadata;
 
     /** @var array<int, string> */
     protected $fillable = [
@@ -99,16 +101,6 @@ class OrganisationalUnit extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
-    }
-
-    /**
-     * Metadata attached to this unit.
-     *
-     * @return MorphMany
-     */
-    public function metadata(): MorphMany
-    {
-        return $this->morphMany(ModelMetadata::class, 'metadatable');
     }
 
     // Scopes

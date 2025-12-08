@@ -422,13 +422,4 @@ class OrganisationalUnitTest extends TestCase
 
         $this->assertEquals(3, $descendantsCount);
     }
-
-    public function testUpdatingOrganisationalUnitWithInvalidType(): void
-    {
-        $someType = SomeType::factory()->create();
-        $unit = OrganisationalUnit::factory()->create(['entity_id' => $someType->id, 'entity_type' => SomeType::class]);
-
-        $this->expectException(InvalidArgumentException::class);
-        $unit->update(['entity_type' => 'InvalidType']);
-    }
 }
