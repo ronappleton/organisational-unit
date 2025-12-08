@@ -341,7 +341,6 @@ class OrganisationalUnit extends Model
     {
         parent::boot();
 
-        // Cascade soft deletes / restores / force deletes to children
         static::deleting(function (OrganisationalUnit $unit): void {
             if (!$unit->isForceDeleting()) {
                 $unit->children()->delete();
