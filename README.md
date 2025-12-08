@@ -208,4 +208,7 @@ $room101->setMeta('capacity', 40);
 - Extendable into any domain
 - Highly scalable and predictable
 
+## Example Domains
+[Example Domains](docs/docs.md)
+
 This solves a problem once so your whole ecosystem doesn't need to reinvent structure management repeatedly.
