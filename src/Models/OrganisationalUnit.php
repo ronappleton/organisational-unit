@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
@@ -33,8 +32,9 @@ class OrganisationalUnit extends Model
 {
     /** @use HasFactory<OrganisationalUnitFactory> */
     use HasFactory;
-    use SoftDeletes;
+
     use HasMetadata;
+    use SoftDeletes;
 
     /** @var array<int, string> */
     protected $fillable = [
@@ -63,8 +63,7 @@ class OrganisationalUnit extends Model
     /**
      * Use the custom query builder.
      *
-     * @param \Illuminate\Database\Query\Builder $query
-     * @return OrganisationalUnitQueryBuilder
+     * @param  \Illuminate\Database\Query\Builder  $query
      */
     public function newEloquentBuilder($query): OrganisationalUnitQueryBuilder
     {
@@ -108,7 +107,7 @@ class OrganisationalUnit extends Model
     /**
      * Scope to filter units by entity type.
      *
-     * @param Builder<OrganisationalUnit> $query
+     * @param  Builder<OrganisationalUnit>  $query
      */
     public function scopeEntityType(Builder $query, string $type): Builder
     {
@@ -118,7 +117,7 @@ class OrganisationalUnit extends Model
     /**
      * Scope to filter root units (no parent).
      *
-     * @param Builder<OrganisationalUnit> $query
+     * @param  Builder<OrganisationalUnit>  $query
      */
     public function scopeRoot(Builder $query): Builder
     {
@@ -128,7 +127,7 @@ class OrganisationalUnit extends Model
     /**
      * Scope to filter by tenant.
      *
-     * @param Builder<OrganisationalUnit> $query
+     * @param  Builder<OrganisationalUnit>  $query
      */
     public function scopeTenant(Builder $query, int $tenantId): Builder
     {
@@ -201,7 +200,7 @@ class OrganisationalUnit extends Model
     /**
      * Rebuild the tree structure from a flat list of units.
      *
-     * @param Collection<int, OrganisationalUnit> $flatUnits
+     * @param  Collection<int, OrganisationalUnit>  $flatUnits
      */
     public static function rebuildTreeFromFlatList(Collection $flatUnits): void
     {
@@ -283,8 +282,8 @@ class OrganisationalUnit extends Model
     /**
      * Recursively get selected fields for units matching conditions.
      *
-     * @param array<int, string> $fields
-     * @param array<string, mixed> $conditions
+     * @param  array<int, string>  $fields
+     * @param  array<string, mixed>  $conditions
      * @return Collection<int, array<string, mixed>>
      */
     public function getFieldsByConditions(array $fields, array $conditions): Collection
@@ -292,7 +291,7 @@ class OrganisationalUnit extends Model
         $results = collect();
 
         $matches = collect($conditions)->every(
-            fn($value, string $field) => $this->{$field} === $value
+            fn ($value, string $field) => $this->{$field} === $value
         );
 
         if ($matches) {
@@ -326,7 +325,7 @@ class OrganisationalUnit extends Model
      */
     public function isLeaf(): bool
     {
-        return !$this->children()->exists();
+        return ! $this->children()->exists();
     }
 
     protected static function boot(): void
@@ -334,7 +333,7 @@ class OrganisationalUnit extends Model
         parent::boot();
 
         static::deleting(function (OrganisationalUnit $unit): void {
-            if (!$unit->isForceDeleting()) {
+            if (! $unit->isForceDeleting()) {
                 $unit->children()->delete();
             }
         });

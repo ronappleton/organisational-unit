@@ -15,7 +15,7 @@ class OrganisationalUnitTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testItCanCreateAnOrganisationalUnit(): void
+    public function test_it_can_create_an_organisational_unit(): void
     {
         $someType = SomeType::factory()->create();
 
@@ -30,7 +30,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertEquals(SomeType::class, $unit->entity_type);
     }
 
-    public function testItCanGetItsChildren(): void
+    public function test_it_can_get_its_children(): void
     {
         $someType = SomeType::factory()->create();
         $parent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -44,7 +44,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertEquals($child->id, $parent->children->first()->id);
     }
 
-    public function testItCanGetItsTree(): void
+    public function test_it_can_get_its_tree(): void
     {
         $someType = SomeType::factory()->create();
         $root = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -60,7 +60,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertEquals($child->id, $tree->first()->children->first()->id);
     }
 
-    public function testItCanGetDescendants(): void
+    public function test_it_can_get_descendants(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -78,7 +78,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($descendants->contains('id', $grandchild->id));
     }
 
-    public function testItCanGetParentChain(): void
+    public function test_it_can_get_parent_chain(): void
     {
         $someType = SomeType::factory()->create();
         $grandparent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -92,7 +92,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($chain->contains('id', $grandparent->id));
     }
 
-    public function testItCanCheckIfItIsRoot(): void
+    public function test_it_can_check_if_it_is_root(): void
     {
         $someType = SomeType::factory()->create();
         $unit = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -102,7 +102,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertFalse($child->isRoot());
     }
 
-    public function testItCanCheckIfItIsLeaf(): void
+    public function test_it_can_check_if_it_is_leaf(): void
     {
         $someType = SomeType::factory()->create();
         $unit = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -112,7 +112,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertFalse($unit->isLeaf());
     }
 
-    public function testItCanGetSiblings(): void
+    public function test_it_can_get_siblings(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -131,7 +131,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($siblings->contains('id', $sibling2->id));
     }
 
-    public function testItCanMoveToNewParent(): void
+    public function test_it_can_move_to_new_parent(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -146,7 +146,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertEquals($parent2->id, $child->parent_id);
     }
 
-    public function testItCanDetachFromParent(): void
+    public function test_it_can_detach_from_parent(): void
     {
         $someType = SomeType::factory()->create();
         $parent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -157,7 +157,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertNull($child->parent_id);
     }
 
-    public function testItCanRebuildTreeFromFlatList(): void
+    public function test_it_can_rebuild_tree_from_flat_list(): void
     {
         $someType = SomeType::factory()->create();
         $unit1 = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -173,7 +173,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertCount(1, $unit3->children); // unit4
     }
 
-    public function testItCanGetFieldsByConditions(): void
+    public function test_it_can_get_fields_by_conditions(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -205,7 +205,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($results->contains('entity_id', $child2->entity_id));
     }
 
-    public function testGetFieldsByConditionsWithNoMatch(): void
+    public function test_get_fields_by_conditions_with_no_match(): void
     {
         $someType = SomeType::factory()->create();
 
@@ -223,7 +223,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($results->isEmpty());
     }
 
-    public function testEntityTypeAndIdMustBeUniqueWithinSameParent(): void
+    public function test_entity_type_and_id_must_be_unique_within_same_parent(): void
     {
         $someType = SomeType::factory()->create();
         $parent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -242,7 +242,7 @@ class OrganisationalUnitTest extends TestCase
         ]);
     }
 
-    public function testMovingToSameParentDoesNotChangeParentId(): void
+    public function test_moving_to_same_parent_does_not_change_parent_id(): void
     {
         $someType = SomeType::factory()->create();
         $parent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -254,7 +254,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertEquals($originalParentId, $child->parent_id);
     }
 
-    public function testCannotCreateCircularReference(): void
+    public function test_cannot_create_circular_reference(): void
     {
         $someType = SomeType::factory()->create();
         $parent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -264,13 +264,13 @@ class OrganisationalUnitTest extends TestCase
         $child->moveToParent($child->id); // Trying to make itself a parent
     }
 
-    public function testEntityTypeMustBeValid(): void
+    public function test_entity_type_must_be_valid(): void
     {
         $this->expectException(InvalidArgumentException::class);
         OrganisationalUnit::factory()->create(['entity_type' => 'InvalidType']);
     }
 
-    public function testComplexTreeStructure(): void
+    public function test_complex_tree_structure(): void
     {
         $someType = SomeType::factory()->create();
         $grandparent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -284,7 +284,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertCount(0, $grandchild->children);
     }
 
-    public function testDetachingLeafNodeDoesNotAffectParent(): void
+    public function test_detaching_leaf_node_does_not_affect_parent(): void
     {
         $someType = SomeType::factory()->create();
         $parent = OrganisationalUnit::factory()->create(['parent_id' => null, 'entity_id' => $someType->id, 'entity_type' => SomeType::class]);
@@ -296,7 +296,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertCount(0, $parent->children); // Ensure child is removed
     }
 
-    public function testAddingMultipleChildrenAndRemovingOne(): void
+    public function test_adding_multiple_children_and_removing_one(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -314,7 +314,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertCount(1, $parent->fresh()->children);
     }
 
-    public function testDeletingUnitDeletesChildren(): void
+    public function test_deleting_unit_deletes_children(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -330,7 +330,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertNotNull(OrganisationalUnit::withTrashed()->find($child2->id)->deleted_at);
     }
 
-    public function testRestoringUnitRestoresChildren(): void
+    public function test_restoring_unit_restores_children(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -345,7 +345,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertNull(OrganisationalUnit::find($child->id)->deleted_at);
     }
 
-    public function testForceDeletingUnitForceDeletesChildren(): void
+    public function test_force_deleting_unit_force_deletes_children(): void
     {
         $someType1 = SomeType::factory()->create();
         $someType2 = SomeType::factory()->create();
@@ -361,7 +361,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertDatabaseMissing('organisational_units', ['id' => $child2->id]);
     }
 
-    public function testScopeEntityType(): void
+    public function test_scope_entity_type(): void
     {
         $someType = SomeType::factory()->create();
         $someOtherType = SomeOtherType::factory()->create();
@@ -375,7 +375,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertFalse($filteredUnits->contains($unitTypeB));
     }
 
-    public function testBuildTree(): void
+    public function test_build_tree(): void
     {
         $someType = SomeType::factory()->create();
         $someOtherType = SomeOtherType::factory()->create();
@@ -390,7 +390,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertTrue($tree->first()->children->contains($childUnit));
     }
 
-    public function testGetAllRoots()
+    public function test_get_all_roots()
     {
         $someType = SomeType::factory()->create();
         $someOtherType = SomeOtherType::factory()->create();
@@ -405,7 +405,7 @@ class OrganisationalUnitTest extends TestCase
         $this->assertFalse($roots->contains($childUnit));
     }
 
-    public function testGetDescendantsCount()
+    public function test_get_descendants_count()
     {
         // Arrange: Create a parent unit with multiple descendants.
         $someType = SomeType::factory()->create();

@@ -9,7 +9,7 @@ use Orchestra\Testbench\TestCase;
 
 class OrganisationalUnitServiceProviderTest extends TestCase
 {
-    public function testBootLoadsMigrations(): void
+    public function test_boot_loads_migrations(): void
     {
         // Arrange: Mock the migration path
         $migrationsPath = realpath(__DIR__.'/../../database/migrations');

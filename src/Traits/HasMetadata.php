@@ -3,10 +3,18 @@
 namespace Appleton\OrganisationalUnit\Traits;
 
 use Appleton\OrganisationalUnit\Models\ModelMetadata;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @template TModel of Model
+ * @mixin TModel
+ */
 trait HasMetadata
 {
+    /**
+     * @return MorphMany<ModelMetadata, TModel>
+     */
     public function metadata(): MorphMany
     {
         return $this->morphMany(ModelMetadata::class, 'metadatable');
@@ -44,7 +52,7 @@ trait HasMetadata
         } elseif (is_array($value) === true) {
             $meta->json_value = $value;
         } elseif ($value !== null) {
-            $meta->string_value = (string)$value;
+            $meta->string_value = (string) $value;
         }
 
         $meta->save();
@@ -63,7 +71,7 @@ trait HasMetadata
         if ($this->relationLoaded('metadata')) {
             $this->setRelation(
                 'metadata',
-                $this->metadata->reject(fn($m) => $m->key === $key),
+                $this->metadata->reject(fn ($m) => $m->key === $key),
             );
         }
 
@@ -80,5 +88,4 @@ trait HasMetadata
 
         return null;
     }
-
 }
